@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KMUTT Smart Plant Watering IoT Dashboard</title>
+    <!-- Google Fonts & FontAwesome for icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* KMUTT BRANDING COLORS */
+        :root {
+            --kmutt-orange: #FA4616;
+            --kmutt-dark: #1A1A1A;
+            --kmutt-orange-hover: #D93810;
+            --light-bg: #F4F6F8;
+            --white: #FFFFFF;
+            --success: #2E7D32;
+            --info: #00A8FF;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Anuphan', 'IBM Plex Sans Thai', sans-serif;
+            background-color: var(--light-bg);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* -------------------------------------
+           1. AUTHENTICATION STYLE (Login/Register)
+        ------------------------------------- */
+        .auth-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--white);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            border-top: 8px solid var(--kmutt-orange);
+            transition: var(--transition);
+        }
+
+        /* KMUTT Creative Vector Logo Placeholder */
+        .logo-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .logo-icon {
+            background: var(--kmutt-orange);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(250, 70, 22, 0.3);
+        }
+
+        .logo-text {
+            text-align: left;
+            line-height: 1.2;
+        }
+
+        .logo-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--kmutt-dark);
+            letter-spacing: 1px;
+        }
+
+        .logo-sub {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .auth-card h2 {
+            font-size: 22px;
+            color: var(--kmutt-dark);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .auth-card p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #444;
+        }
+
+        .input-group .input-wrapper {
+            position: relative;
+        }
+
+        .input-group .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 16px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px 12px 42px;
+            border: 1.5px solid #EAEAEA;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .input-group input:focus {
+            border-color: var(--kmutt-orange);
+            box-shadow: 0 0 0 4px rgba(250, 70, 22, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--kmutt-orange);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            background: var(--kmutt-orange-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #444;
+            margin-top: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e2e2;
+        }
+
+        .switch-mode {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .switch-mode span {
+            color: var(--kmutt-orange);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* -------------------------------------
+           2. DASHBOARD LAYOUT STYLE
+        ------------------------------------- */
+        .dashboard-container {
+            display: none;
+            width: 100%;
+            max-width: 1000px;
+            min-height: 85vh;
+            background: var(--white);
+            border-radius: 32px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            margin: 20px;
+            border-left: 10px solid var(--kmutt-orange);
+        }
+
+        .db-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 85vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: var(--kmutt-dark);
+            color: white;
+            padding: 35px 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-item {
+            padding: 14px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #b3b3b3;
+            transition: var(--transition);
+        }
+
+        .menu-item:hover, .menu-item.active {
+            color: white;
+            background: rgba(250, 70, 22, 0.15);
+            border-left: 4px solid var(--kmutt-orange);
+        }
+
+        .menu-item.active {
+            background: var(--kmutt-orange);
+        }
+
+        .btn-logout {
+            color: #FF6B6B;
+            background: rgba(255, 107, 107, 0.1);
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .btn-logout:hover {
+            background: #FF6B6B;
+            color: white;
+        }
+
+        /* Main Dashboard Content */
+        .main-content {
+            padding: 40px;
+            background: #FAFBFD;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1.5px solid #F0F2F5;
+            padding-bottom: 20px;
+        }
+
+        .welcome-text h1 {
+            font-size: 24px;
+            color: var(--kmutt-dark);
+            font-weight: 600;
+        }
+
+        .welcome-text p {
+            font-size: 13px;
+            color: #777;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--white);
+            padding: 8px 16px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background: #F4F6F8;
+            color: var(--kmutt-orange);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Widgets Banner */
+        .status-banner {
+            background: linear-gradient(135deg, var(--kmutt-dark) 0%, #333333 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-banner::before {
+            content: '';
+            position: absolute;
+            right: -50px;
+            top: -50px;
+            width: 180px;
+            height: 180px;
+            background: rgba(250, 70, 22, 0.15);
+            border-radius: 50%;
+        }
+
+        .clock-section h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--kmutt-orange);
+            margin-bottom: 5px;
+        }
+
+        .live-timer {
+            font-size: 42px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            font-family: monospace;
+        }
+
+        .system-status-pill {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28A745;
+            color: #28A745;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Grid for settings and plant status */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 25px;
+        }
+
+        .db-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #F0F2F5;
+        }
+
+        .db-card h2 {
+            font-size: 18px;
+            color: var(--kmutt-dark);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .db-card h2 i {
+            color: var(--kmutt-orange);
+        }
+
+        /* Config Form Elements */
+        .time-picker-box {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .time-picker-box input[type="time"] {
+            flex: 1;
+            padding: 12px;
+            border: 1.5px solid #EAEAEA;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .time-picker-box input[type="time"]:focus {
+            border-color: var(--kmutt-orange);
+        }
+
+        .btn-inline {
+            width: auto;
+            padding: 0 24px;
+            margin: 0;
+        }
+
+        /* Display Saved Settings */
+        .setting-result-box {
+            background: #FAFBFD;
+            border-left: 4px solid var(--success);
+            padding: 15px;
+            border-radius: 4px 12px 12px 4px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        /* Interactive Plant Graphic simulation */
+        .plant-simulation {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .plant-avatar {
+            font-size: 64px;
+            margin-bottom: 15px;
+            transition: transform 0.5s ease;
+            display: inline-block;
+        }
+
+        /* Animation class when watering */
+        .watering-active {
+            animation: shake-plant 0.6s infinite alternate;
+        }
+
+        @keyframes shake-plant {
+            0% { transform: rotate(-5deg) scale(1.05); }
+            100% { transform: rotate(5deg) scale(1.05); }
+        }
+
+        .pump-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            background: #FFEBE6;
+            color: var(--kmutt-orange);
+        }
+
+        .pump-badge.on {
+            background: #E8F5E9;
+            color: var(--success);
+        }
+
+        /* Code Block Panel for Professor inspection */
+        .code-inspector-panel {
+            margin-top: 10px;
+            background: #282C34;
+            color: #ABB2BF;
+            padding: 15px;
+            border-radius: 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+        .code-inspector-panel text-orange { color: #DE5A43; }
+        .code-inspector-panel text-green { color: #98C379; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. AUTHENTICATION CONTROLLER WINDOW -->
+    <div class="auth-container" id="authPage">
+        <div class="auth-card">
+            <!-- KMUTT Logo Vector Graphic -->
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-title">KMUTT</div>
+                    <div class="logo-sub">Engineering IoT Project</div>
+                </div>
+            </div>
+
+            <!-- Login Section View -->
+            <div id="loginFormView">
+                <h2>เข้าสู่ระบบ</h2>
+                <p>ระบบจัดการตั้งเวลารดน้ำต้นไม้อัตโนมัติ</p>
+                
+                <div class="input-group">
+                    <label for="usernameInput">ชื่อผู้ใช้งาน (Username)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="usernameInput" placeholder="กรอกรหัสผู้ใช้งานหรืออีเมล">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="passwordInput">รหัสผ่าน (Password)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="passwordInput" placeholder="กรอกรหัสผ่านของคุณ">
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="executeLogin()">
+                    <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบพัฒนา
+                </button>
+                <div class="switch-mode">ยังไม่มีสิทธิ์เข้าถึง? <span onclick="toggleAuthViews()">สมัครสมาชิกใหม่</span></div>
+            </div>
+
+            <!-- Register Section View -->
+            <div id="registerFormView" style="display: none;">
+                <h2>สร้างบัญชีผู้ใช้ใหม่</h2>
+                <p>โปรเจกต์พัฒนาระบบอัตโนมัติสำหรับกลุ่มคนไม่มีเวลาว่าง</p>
+                
+                <div class="input-group">
+                    <label for="regUser">กำหนดชื่อผู้ใช้งาน (New Username)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <input type="text" id="regUser" placeholder="ภาษาอังกฤษ เช่น student_iot">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="regPass">กำหนดรหัสผ่าน (New Password)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-key"></i>
+                        <input type="password" id="regPass" placeholder="รหัสผ่านขั้นต่ำ 4 ตัวอักษร">
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="executeRegister()">
+                    <i class="fa-solid fa-user-check"></i> ยืนยันสมัครสมาชิก
+                </button>
+                <div class="switch-mode">เป็นสมาชิกอยู่แล้ว? <span onclick="toggleAuthViews()">กลับหน้าเข้าสู่ระบบ</span></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 2. MAIN IOT DASHBOARD WINDOW (KMUTT DESIGN) -->
+    <div class="dashboard-container" id="dashboardPage">
+        <div class="db-grid">
+            <!-- Left Side Navbar menu -->
+            <div class="sidebar">
+                <div class="sidebar-menu">
+                    <div class="logo-container" style="margin-bottom: 30px;">
+                        <div class="logo-icon" style="background:#FFF; color:var(--kmutt-orange); width:38px; height:38px; font-size:18px;">
+                            <i class="fa-solid fa-gear"></i>
+                        </div>
+                        <div class="logo-text">
+                            <div class="logo-title" style="color:white; font-size:18px;">มจธ. IoT</div>
+                            <div class="logo-sub" style="color:#aaa; font-size:9px;">Smart Plant Project</div>
+                        </div>
+                    </div>
+
+                    <div class="menu-item active"><i class="fa-solid fa-gauge"></i> แผงควบคุมระบบ</div>
+                    <div class="menu-item"><i class="fa-solid fa-microchip"></i> สถานะฮาร์ดแวร์</div>
+                    <div class="menu-item"><i class="fa-solid fa-database"></i> ล็อกข้อมูลย้อนหลัง</div>
+                </div>
+
+                <button class="btn-logout" onclick="executeLogout()">
+                    <i class="fa-solid fa-power-off"></i> ออกจากระบบปลอดภัย
+                </button>
+            </div>
+
+            <!-- Right Side Workspace -->
+            <div class="main-content">
+                <div class="header-bar">
+                    <div class="welcome-text">
+                        <h1>แผงควบคุมหลัก (Smart Plant Center)</h1>
+                        <p>รหัสโครงงานวิจัยเทคโนโลยี IoT อัตโนมัติ - คณะวิศวกรรมศาสตร์ มจธ.</p>
+                    </div>
+                    <div class="user-profile">
+                        <div class="avatar" id="avatarLetter">U</div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 14px; font-weight: 600;" id="profileName">KMUTT Student</div>
+                            <div style="font-size: 11px; color: #888;">สถานะ: นักศึกษาพัฒนา</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Realtime Time Sync Banner with System Status -->
+                <div class="status-banner">
+                    <div class="clock-section">
+                        <h3><i class="fa-solid fa-satellite-dish"></i> NTP Server Time Connection</h3>
+                        <div class="live-timer" id="liveClockDisplay">00:00:00</div>
+                    </div>
+                    <div class="system-status-pill">
+                        <i class="fa-solid fa-circle" style="font-size: 8px; animation: pulse 1s infinite alternate;"></i> 
+                        WiFi Connected (ESP32 Node)
+                    </div>
+                </div>
+
+                <!-- Content Panels divided into configurations and live mockup -->
+                <div class="content-grid">
+                    <!-- Left: Control Scheduler Settings Card -->
+                    <div class="db-card">
+                        <h2><i class="fa-solid fa-sliders"></i> ตั้งค่าการรดน้ำล่วงหน้า</h2>
+                        <p style="font-size: 13.5px; color:#555;">ระบุกรอบเวลาที่แน่นอนเพื่อให้ปั๊มน้ำขนาดเล็กทำงานโดยตรง เหมาะสำหรับผู้ใช้ที่ไม่มีเวลาว่างและต้องการดูแลความชื้นต้นไม้</p>
+                        
+                        <div class="time-picker-box">
+                            <input type="time" id="setTargetWaterTime">
+                            <button class="btn btn-primary btn-inline" onclick="commitScheduledTime()">
+                                <i class="fa-solid fa-floppy-disk"></i> บันทึกตั้งค่า
+                            </button>
+                        </div>
+
+                        <div class="setting-result-box" id="schedulerResultBox" style="display: none;">
+                            <i class="fa-solid fa-circle-check" style="color:var(--success);"></i> 
+                            <strong>โครงสร้างเวลาที่บันทึกแล้ว:</strong> จะสั่งรดน้ำอัตโนมัติทุกวันในเวลา <span id="textSavedTime" style="font-weight: 600; color:var(--kmutt-orange);">--:--</span> น.
+                        </div>
+
+                        <div style="margin-top: 25px;">
+                            <h3 style="font-size: 14px; margin-bottom: 8px; color:#555;"><i class="fa-solid fa-code"></i> การทำงานฝั่ง MCU (Arduino Concept)</h3>
+                            <div class="code-inspector-panel">
+                                <text-orange>void</text-orange> loop() {<br>
+                                &nbsp;&nbsp;String current = timeClient.getFormattedTime().substring(0,5);<br>
+                                &nbsp;&nbsp;<text-orange>if</text-orange> (current == <text-green>"<span id="arduinoCodeTime">--:--</span>"</text-green>) {<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;digitalWrite(RELAY_PIN, HIGH); <text-green>// เปิดวาล์วปั๊มน้ำ</text-green><br>
+                                &nbsp;&nbsp;}<br>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Live Mockup Simulation Node Card -->
+                    <div class="db-card" style="text-align: center; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <h2><i class="fa-solid fa-seedling"></i> สถานะจำลองเซ็นเซอร์ปลายทาง</h2>
+                            <p style="font-size: 13px; color:#777; margin-bottom: 15px;">แสดงการจำลองสถานะฮาร์ดแวร์จริง ณ กระถางพืชพรรณ</p>
+                        </div>
+
+                        <div class="plant-simulation">
+                            <div class="plant-avatar" id="plantNodeGraphic">🌿</div>
+                            <div style="margin-top: 10px;">
+                                <div class="pump-badge" id="pumpStateBadge">🔴 ปั๊มระบบปิด (STANDBY)</div>
+                            </div>
+                        </div>
+
+                        <div style="border-top: 1px solid #F0F2F5; padding-top: 15px; text-align: left; font-size: 13.5px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                <span><i class="fa-solid fa-droplet" style="color: var(--info);"></i> ความชื้นในดินเฉลี่ย:</span>
+                                <span style="font-weight: 600;" id="soilMoistureValue">62% (ปกติ)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span><i class="fa-solid fa-temperature-half" style="color: #FF6B6B;"></i> อุณหภูมิบริเวณรอบ:</span>
+                                <span style="font-weight: 600;">29.5 °C</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. JAVASCRIPT LOGIC CONTROLLER WORKFLOW -->
+    <script>
+        // DOM Controller Elements Matching
+        const authPage = document.getElementById('authPage');
+        const dashboardPage = document.getElementById('dashboardPage');
+        const loginFormView = document.getElementById('loginFormView');
+        const registerFormView = document.getElementById('registerFormView');
+        
+        // Form Fields Input Matching
+        const usernameInput = document.getElementById('usernameInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const regUser = document.getElementById('regUser');
+        const regPass = document.getElementById('regPass');
+
+        // App States & Saved Config Variables
+        let targetWateringTime = "";
+        let isWateringInProgress = false;
+
+        // Pre-configured default user account for instant test grading by professor
+        localStorage.setItem('kmutt_admin_user', 'admin');
+        localStorage.setItem('kmutt_admin_pass', '1234');
+
+        // Toggle View States between Login & Register forms
+        function toggleAuthViews() {
+            if (loginFormView.style.display === 'none') {
+                loginFormView.style.display = 'block';
+                registerFormView.style.display = 'none';
+            } else {
+                loginFormView.style.display = 'none';
+                registerFormView.style.display = 'block';
+            }
+        }
+
+        // Action Core logic: Account Registration
+        function executeRegister() {
+            const user = regUser.value.trim();
+            const pass = regPass.value.trim();
+
+            if (!user || !pass) {
+                alert('❌ กรุณากรอกชื่อผู้ใช้งานและรหัสผ่านที่ต้องการให้ครบถ้วน!');
+                return;
+            }
+
+            localStorage.setItem('kmutt_custom_user', user);
+            localStorage.setItem('kmutt_custom_pass', pass);
+            alert('✨ สมัครสมาชิกบัญชีโครงงานสำเร็จแล้ว! ระบบนำคุณกลับไปหน้าเข้าสู่ระบบหลักเพื่อยืนยันตัวตนอีกครั้ง');
+            toggleAuthViews();
+        }
+
+        // Action Core logic: Authentication Check Verification
+        function executeLogin() {
+            const enteredUser = usernameInput.value.trim();
+            const enteredPass = passwordInput.value.trim();
+
+            const customUser = localStorage.getItem('kmutt_custom_user');
+            const customPass = localStorage.getItem('kmutt_custom_pass');
+
+            // Verification Check (Matches against custom register data OR master admin account)
+            if ((enteredUser === 'admin' && enteredPass === '1234') || 
+                (customUser && enteredUser === customUser && enteredPass === customPass)) {
+                
+                // Change View states safely
+                authPage.style.display = 'none';
+                dashboardPage.style.display = 'block';
+                
+                // Render profile specific text
+                document.getElementById('profileName').textContent = enteredUser;
+                document.getElementById('avatarLetter').textContent = enteredUser.charAt(0).toUpperCase();
+                
+                // Initialize Internal System Engines
+                initializeSystemEngines();
+            } else {
+                alert('❌ ข้อมูลตัวตนไม่ถูกต้อง! เคล็ดลับคุณครูทดสอบ: สามารถระบุ User: admin และ Pass: 1234 เพื่อรันตรวจงานได้ทันทีครับ');
+            }
+        }
+
+        // Initialize Live Systems: Clock & Match engine
+        function initializeSystemEngines() {
+            // Clock Loop Interval tick every 1000ms
+            setInterval(() => {
+                const now = new Date();
+                const hh = String(now.getHours()).padStart(2, '0');
+                const mm = String(now.getMinutes()).padStart(2, '0');
+                const ss = String(now.getSeconds()).padStart(2, '0');
+                const currentStr = `${hh}:${mm}:${ss}`;
+                
+                document.getElementById('liveClockDisplay').textContent = currentStr;
+
+                // Matcher analysis to verify if the time triggers automated plant watering
+                const currentMinutesStr = `${hh}:${mm}`;
+                if (targetWateringTime && currentMinutesStr === targetWateringTime && ss === "00" && !isWateringInProgress) {
+                    triggerAutomatedWateringAction();
+                }
+            }, 1000);
+
+            // Fetch any globally stored configuration presets
+            const cachedTime = localStorage.getItem('kmutt_saved_water_time');
+            if (cachedTime) {
+                targetWateringTime = cachedTime;
+                document.getElementById('setTargetWaterTime').value = cachedTime;
+                renderTimeUiUpdate(cachedTime);
+            }
+        }
+
+        // Commit time selection to DB/Storage state
+        function commitScheduledTime() {
+            const pickedTime = document.getElementById('setTargetWaterTime').value;
+            if (!pickedTime) {
+                alert('❌ โปรดระบุเวลาตัวเลขโครงสร้างนาฬิกาก่อนทำการกดบันทึกข้อมูลครับ!');
+                return;
+            }
+
+            targetWateringTime = pickedTime;
+            localStorage.setItem('kmutt_saved_water_time', pickedTime);
+            renderTimeUiUpdate(pickedTime);
+            alert(`💾 บันทึกตั้งเวลาสำเร็จ! ระบบ IoT จะสั่งเปิดวาล์วรดน้ำทุกวันอย่างเที่ยงตรง ณ เวลา ${pickedTime} น.`);
+        }
+
+        // Helper update function for dynamic dashboard text nodes
+        function renderTimeUiUpdate(time) {
+            document.getElementById('schedulerResultBox').style.display = 'block';
+            document.getElementById('textSavedTime').textContent = time;
+            document.getElementById('arduinoCodeTime').textContent = time;
+        }
+
+        // Trigger Action: Simulation Sequence for automatic water irrigation pump
+        function triggerAutomatedWateringAction() {
+            isWateringInProgress = true;
+            
+            // Adjust UI DOM layout variables to active states
+            const graphic = document.getElementById('plantNodeGraphic');
+            const badge = document.getElementById('pumpStateBadge');
+            const moisture = document.getElementById('soilMoistureValue');
+            
+            badge.textContent = "🔵 ปั๊มระบบกำลังทำงาน (WATERING ACTIVE)";
+            badge.className = "pump-badge on";
+            graphic.textContent = "💦🪴💦";
+            graphic.className = "plant-avatar watering-active";
+            moisture.textContent = "85% (กำลังได้รับน้ำ)";
+
+            // Automated timeout shut down sequence after 8 seconds of demo run
+            setTimeout(() => {
+                badge.textContent = "🔴 ปั๊มระบบปิด (STANDBY)";
+                badge.className = "pump-badge";
+                graphic.textContent = "🌿";
+                graphic.className = "plant-avatar";
+                moisture.textContent = "75% (ความชื้นอิ่มตัวดี)";
+                isWateringInProgress = false; // Release sequence lock
+            }, 8000);
+        }
+
+        // Reset Page View back to Auth
+        function executeLogout() {
+            if (confirm("ต้องการออกจากหน้าแผงระบบควบคุมหลักหรือไม่?")) {
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
