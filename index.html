@@ -66,17 +66,55 @@ details{margin-top:16px;color:var(--mute);font-size:.88rem}
 summary{cursor:pointer;font-weight:600;color:var(--ink)}
 code{font-family:ui-monospace,Menlo,monospace;font-size:.82rem;background:var(--track);padding:1px 6px;border-radius:4px}
 ul{padding-left:20px;margin-top:8px}
+[hidden]{display:none!important}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.login .panel{width:100%;max-width:360px}
+.login h1{font-size:1.3rem;margin-bottom:4px}
+.login .sub{margin-bottom:18px}
+.field{display:block;margin-bottom:14px;font-size:.9rem;font-weight:600}
+.field input{display:block;width:100%;margin-top:6px;padding:11px 12px;font:inherit;font-weight:400;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px}
+.field input:focus-visible{outline:3px solid var(--green);outline-offset:1px}
+.btn{width:100%;padding:12px;font:inherit;font-weight:600;color:#fff;background:var(--green);border:0;border-radius:10px;cursor:pointer}
+:root[data-theme="dark"] .btn{color:#0D1612}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#0D1612}}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn:focus-visible{outline:3px solid var(--green);outline-offset:3px}
+.err{min-height:1.4em;margin-top:12px;font-size:.88rem;color:var(--bad)}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.link{font:inherit;font-size:.85rem;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+.link:hover{color:var(--ink)}
+.link:focus-visible{outline:3px solid var(--green);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<main class="login" id="loginView" hidden>
+  <section class="panel" aria-labelledby="lh">
+    <h1 id="lh">เข้าสู่ระบบ</h1>
+    <div class="sub">แผงควบคุมระบบปลูกผักไฮโดรโปนิกส์</div>
+    <form id="loginForm">
+      <label class="field">ชื่อผู้ใช้
+        <input id="lUser" name="username" type="text" autocomplete="username" autocapitalize="none" required>
+      </label>
+      <label class="field">รหัสผ่าน
+        <input id="lPass" name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <button class="btn" id="lBtn" type="submit">เข้าสู่ระบบ</button>
+      <p class="err" id="lErr" role="alert"></p>
+    </form>
+  </section>
+</main>
+
+<div class="wrap" id="app" hidden>
 <header>
   <div>
     <h1>ระบบปลูกผักไฮโดรโปนิกส์ตั้งโต๊ะ</h1>
     <div class="sub">แผงตรวจค่าน้ำและควบคุมอุปกรณ์</div>
   </div>
-  <div class="chip" id="conn"><span class="dot"></span><span id="connText">รอเชื่อมต่อฮาร์ดแวร์</span></div>
+  <div class="hdr-right">
+    <div class="chip" id="conn"><span class="dot"></span><span id="connText">รอเชื่อมต่อฮาร์ดแวร์</span></div>
+    <button class="link" id="logoutBtn" type="button">ออกจากระบบ</button>
+  </div>
 </header>
 
 <div class="grid">
@@ -224,8 +262,48 @@ document.querySelectorAll('.sw').forEach(b => b.addEventListener('click', () => 
   const d = b.dataset.dev; sendCommand(d, !state[d]);
 }));
 
-render();
-connectHardware();
+// ---------- เข้าสู่ระบบ ----------
+async function api(path, opts){
+  const r = await fetch(path, Object.assign({credentials:'same-origin'}, opts));
+  let data = {}; try{ data = await r.json(); }catch(e){}
+  return {status:r.status, data};
+}
+let started = false;
+function showApp(on){ $('loginView').hidden = on; $('app').hidden = !on; }
+function startApp(){
+  showApp(true);
+  if(!started){ started = true; render(); connectHardware(); }
+}
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('lBtn'), err = $('lErr');
+  err.textContent = ''; btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
+  try{
+    const {status, data} = await api('/api/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username:$('lUser').value, password:$('lPass').value})
+    });
+    if(data.ok){ $('lPass').value = ''; startApp(); }
+    else if(status === 401) err.textContent = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+    else if(status === 500) err.textContent = 'เซิร์ฟเวอร์ยังไม่ได้ตั้งค่า Environment Variables';
+    else err.textContent = 'เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง';
+  }catch(_){
+    err.textContent = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';
+  }
+  btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+});
+$('logoutBtn').addEventListener('click', async () => {
+  try{ await api('/api/logout', {method:'POST'}); }catch(_){}
+  location.reload();
+});
+(async function init(){
+  try{
+    const {data} = await api('/api/session');
+    if(data.ok){ startApp(); return; }
+  }catch(_){}
+  showApp(false);
+})();
 </script>
 </body>
 </html>
