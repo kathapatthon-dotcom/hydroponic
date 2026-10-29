@@ -95,15 +95,14 @@ details{background:#FFF0E6;color:var(--mute);border-left-color:var(--orange)}
 summary{color:var(--ink)}
 code{background:#fff;color:#C93A0E}
 .link{border-color:rgba(255,255,255,.55)}
-.hh-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.hh-top h2{margin:0}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
-.seg button{font:inherit;font-size:.82rem;padding:5px 14px;border:0;background:transparent;color:var(--mute);cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--orange-d);color:#fff}
-.hist+.hist{margin-top:18px}
-.hist b{font-size:.85rem;color:var(--mute)}
-.hchart{display:block;width:100%;height:140px;margin-top:6px;background:var(--bg);border-radius:10px}
-.hist .hint{margin-top:6px;font-size:.82rem}
+.sch{padding:14px 0;border-top:1px solid var(--line)}
+.sch:first-of-type{border-top:0;padding-top:0}
+.sch .row{padding:0;border:0}
+.times{display:flex;gap:10px;margin-top:12px}
+.times label{flex:1;font-size:.82rem;font-weight:600;color:var(--mute)}
+.times input{display:block;width:100%;margin-top:4px;padding:9px 10px;font:inherit;font-size:.95rem;font-weight:400;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px}
+#schSave{margin-top:6px}
+#schMsg.bad{color:var(--bad)}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;display=swap" rel="stylesheet">
 </head>
@@ -157,28 +156,6 @@ code{background:#fff;color:#C93A0E}
       <p class="hint" id="ecHint"></p>
       <svg class="spark" id="ecSpark" viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true"></svg>
     </section>
-
-    <section class="panel" aria-labelledby="hh">
-      <div class="hh-top">
-        <h2 id="hh">ประวัติย้อนหลัง</h2>
-        <div class="seg" role="group" aria-label="ช่วงเวลา">
-          <button type="button" data-r="1h" aria-pressed="false">1 ชม.</button>
-          <button type="button" data-r="24h" aria-pressed="true">24 ชม.</button>
-          <button type="button" data-r="7d" aria-pressed="false">7 วัน</button>
-        </div>
-      </div>
-      <div class="hist">
-        <b>pH</b>
-        <svg class="hchart" id="phHist" viewBox="0 0 600 140" preserveAspectRatio="none" role="img" aria-label="กราฟ pH ย้อนหลัง"></svg>
-        <p class="hint" id="phHistNote"></p>
-      </div>
-      <div class="hist">
-        <b>EC (mS/cm)</b>
-        <svg class="hchart" id="ecHist" viewBox="0 0 600 140" preserveAspectRatio="none" role="img" aria-label="กราฟ EC ย้อนหลัง"></svg>
-        <p class="hint" id="ecHistNote"></p>
-      </div>
-      <p class="hint" id="histMsg"></p>
-    </section>
   </div>
 
   <aside>
@@ -199,6 +176,28 @@ code{background:#fff;color:#C93A0E}
       </div>
     </section>
 
+    <section class="panel" aria-labelledby="sh">
+      <h2 id="sh">ตั้งเวลาอัตโนมัติ</h2>
+      <div class="sch">
+        <div class="row"><div class="t"><b>หลอดไฟปลูกพืช</b><small id="schLightS">ปิดตั้งเวลา</small></div>
+          <button class="sw light" role="switch" aria-checked="false" aria-label="เปิดตั้งเวลาหลอดไฟ" id="schLightOn" type="button"></button></div>
+        <div class="times">
+          <label>เปิดไฟเวลา<input type="time" id="lFrom" value="06:00"></label>
+          <label>ปิดไฟเวลา<input type="time" id="lTo" value="18:00"></label>
+        </div>
+      </div>
+      <div class="sch">
+        <div class="row"><div class="t"><b>ปั๊มน้ำหมุนเวียน</b><small id="schPumpS">ปิดตั้งเวลา</small></div>
+          <button class="sw" role="switch" aria-checked="false" aria-label="เปิดตั้งเวลาปั๊มน้ำ" id="schPumpOn" type="button"></button></div>
+        <div class="times">
+          <label>เปิดทำงาน (นาที)<input type="number" id="pRun" min="1" max="600" inputmode="numeric" value="15"></label>
+          <label>พัก (นาที)<input type="number" id="pRest" min="1" max="600" inputmode="numeric" value="45"></label>
+        </div>
+      </div>
+      <button class="btn" id="schSave" type="button">บันทึกตารางเวลา</button>
+      <p class="hint" id="schMsg" role="status"></p>
+    </section>
+
     <details>
       <summary>จุดเชื่อมต่อฮาร์ดแวร์ (สำหรับทีมพัฒนา)</summary>
       <ul>
@@ -206,7 +205,8 @@ code{background:#fff;color:#C93A0E}
         <li>รับค่า: <code>hydro/sensor/ph</code>, <code>hydro/sensor/ec</code></li>
         <li>ส่งคำสั่ง: <code>hydro/cmd/light|pump|valve</code> ค่า <code>ON</code> / <code>OFF</code></li>
         <li>ดูฟังก์ชัน <code>connectHardware()</code> และ <code>sendCommand()</code> ในโค้ด</li>
-      </ul>
+        <li>ตารางเวลา: ส่ง JSON ที่ <code>hydro/cmd/schedule</code> ในฟังก์ชัน <code>sendSchedule()</code> บอร์ดควรเป็นฝ่ายรันตาราง (นับนาทีตั้งแต่เที่ยงคืน)</li>
+</ul>
     </details>
   </aside>
 </div>
@@ -246,6 +246,7 @@ function onReading(kind, v){
 }
 function setConn(ok){
   state.connected = ok;
+  if(ok) syncSchedule();
   document.querySelector('#conn .dot').style.background = ok ? 'var(--green)' : 'var(--warn)';
   $('connText').textContent = ok ? 'เชื่อมต่อฮาร์ดแวร์แล้ว' : 'รอเชื่อมต่อฮาร์ดแวร์';
   render();
@@ -301,50 +302,8 @@ function render(){
   }
   $('lamp').classList.toggle('on', state.light === true);
 }
-document.querySelectorAll('.sw').forEach(b => b.addEventListener('click', () => {
+document.querySelectorAll('.sw[data-dev]').forEach(b => b.addEventListener('click', () => {
   const d = b.dataset.dev; sendCommand(d, !state[d]);
-}));
-
-// ---------- ประวัติย้อนหลังจาก InfluxDB (ผ่าน /api/history) ----------
-const SPAN = {'1h':36e5, '24h':864e5, '7d':6048e5};
-let histRange = '24h';
-function drawChart(k, pts){
-  const r = RANGE[k], W = 600, H = 140, P = 8, span = SPAN[histRange], t0 = Date.now() - span;
-  const X = t => ((t - t0) / span * W).toFixed(1);
-  const Y = v => (H - P - (Math.min(r.max, Math.max(r.min, v)) - r.min) / (r.max - r.min) * (H - 2*P)).toFixed(1);
-  let s = '<rect x="0" y="' + Y(r.hi) + '" width="' + W + '" height="' + (Y(r.lo) - Y(r.hi)).toFixed(1) + '" fill="var(--green)" opacity=".2"/>';
-  if(pts.length > 1){
-    s += '<polyline fill="none" stroke="var(--orange)" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="' +
-      pts.map(p => X(Date.parse(p[0])) + ',' + Y(p[1])).join(' ') + '"/>';
-  } else if(pts.length === 1){
-    s += '<circle cx="' + X(Date.parse(pts[0][0])) + '" cy="' + Y(pts[0][1]) + '" r="4" fill="var(--orange)"/>';
-  }
-  $(k + 'Hist').innerHTML = s;
-  const d = k === 'ph' ? 1 : 2;
-  $(k + 'HistNote').textContent = pts.length
-    ? 'ล่าสุด ' + pts[pts.length-1][1].toFixed(d) + ' · ต่ำสุด ' + Math.min(...pts.map(p => p[1])).toFixed(d) + ' · สูงสุด ' + Math.max(...pts.map(p => p[1])).toFixed(d)
-    : 'ยังไม่มีข้อมูลในช่วงนี้';
-}
-async function loadHistory(){
-  const want = histRange;
-  try{
-    const {status, data} = await api('/api/history?range=' + want);
-    if(want !== histRange) return; // ผู้ใช้เปลี่ยนช่วงเวลาระหว่างรอ
-    if(status === 401){ showApp(false); return; }
-    if(!data.ok){
-      $('histMsg').textContent = status === 500 ? 'ยังไม่ได้ตั้งค่าการเชื่อมต่อ InfluxDB บนเซิร์ฟเวอร์' : 'ดึงข้อมูลย้อนหลังไม่สำเร็จ จะลองใหม่อัตโนมัติ';
-      return;
-    }
-    $('histMsg').textContent = '';
-    drawChart('ph', data.points.ph); drawChart('ec', data.points.ec);
-  }catch(_){
-    $('histMsg').textContent = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้';
-  }
-}
-document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
-  histRange = b.dataset.r;
-  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b));
-  loadHistory();
 }));
 
 // ---------- เข้าสู่ระบบ ----------
@@ -357,7 +316,7 @@ let started = false;
 function showApp(on){ $('loginView').hidden = on; $('app').hidden = !on; }
 function startApp(){
   showApp(true);
-  if(!started){ started = true; render(); connectHardware(); loadHistory(); setInterval(() => { if(!document.hidden) loadHistory(); }, 60000); }
+  if(!started){ started = true; render(); connectHardware(); }
 }
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -382,6 +341,50 @@ $('logoutBtn').addEventListener('click', async () => {
   try{ await api('/api/logout', {method:'POST'}); }catch(_){}
   location.reload();
 });
+// ---------- ตั้งเวลาไฟและปั๊ม ----------
+const SCH_KEY = 'hydro_schedule_v1';
+const sch = { light:{on:false, from:'06:00', to:'18:00'}, pump:{on:false, run:15, rest:45} };
+function schLoad(){
+  try{ const s = JSON.parse(localStorage.getItem(SCH_KEY)); if(s && s.light && s.pump) Object.assign(sch, s); }catch(_){}
+}
+function toMin(t){ const p = t.split(':').map(Number); return p[0]*60 + p[1]; }
+// กฎเดียวกันนี้ควรอยู่ในบอร์ด: ไฟเปิดในช่วง from-to (ข้ามเที่ยงคืนได้), ปั๊มวนรอบ run+rest นาทีนับจากเที่ยงคืน
+function lightShouldBeOn(n){ const a = toMin(sch.light.from), b = toMin(sch.light.to); return a < b ? (n >= a && n < b) : (n >= a || n < b); }
+function pumpShouldBeOn(n){ return n % (sch.pump.run + sch.pump.rest) < sch.pump.run; }
+function schPaint(){
+  const d = new Date(), n = d.getHours()*60 + d.getMinutes();
+  $('schLightS').textContent = sch.light.on ? 'ตามตารางตอนนี้: ' + (lightShouldBeOn(n) ? 'เปิด' : 'ปิด') + ' (' + sch.light.from + '–' + sch.light.to + ' น.)' : 'ปิดตั้งเวลา';
+  $('schPumpS').textContent = sch.pump.on ? 'ตามตารางตอนนี้: ' + (pumpShouldBeOn(n) ? 'เปิด' : 'พัก') + ' (ทำงาน ' + sch.pump.run + ' / พัก ' + sch.pump.rest + ' นาที)' : 'ปิดตั้งเวลา';
+}
+function schFillForm(){
+  $('schLightOn').setAttribute('aria-checked', sch.light.on);
+  $('schPumpOn').setAttribute('aria-checked', sch.pump.on);
+  $('lFrom').value = sch.light.from; $('lTo').value = sch.light.to;
+  $('pRun').value = sch.pump.run; $('pRest').value = sch.pump.rest;
+}
+function sendSchedule(){
+  if(!state.connected) return false;
+  // TODO: publish(HW.topics.cmd + 'schedule', JSON.stringify(sch), {retain:true}) แล้วคืน true เมื่อส่งสำเร็จ
+  return false;
+}
+function syncSchedule(){ sendSchedule(); }
+function schMsg(t, bad){ const m = $('schMsg'); m.textContent = t; m.className = 'hint' + (bad ? ' bad' : ''); }
+['schLightOn','schPumpOn'].forEach(id => $(id).addEventListener('click', e => {
+  const b = e.currentTarget; b.setAttribute('aria-checked', b.getAttribute('aria-checked') !== 'true');
+}));
+$('schSave').addEventListener('click', () => {
+  const from = $('lFrom').value, to = $('lTo').value;
+  const run = parseInt($('pRun').value, 10), rest = parseInt($('pRest').value, 10);
+  if(!from || !to || from === to) return schMsg('เวลาเปิดและปิดไฟต้องไม่ว่าง และต้องไม่ตรงกัน', true);
+  if(!(run >= 1 && run <= 600 && rest >= 1 && rest <= 600)) return schMsg('เวลาทำงานและเวลาพักของปั๊มต้องอยู่ระหว่าง 1–600 นาที', true);
+  sch.light = {on: $('schLightOn').getAttribute('aria-checked') === 'true', from, to};
+  sch.pump = {on: $('schPumpOn').getAttribute('aria-checked') === 'true', run, rest};
+  try{ localStorage.setItem(SCH_KEY, JSON.stringify(sch)); }catch(_){}
+  schPaint();
+  schMsg(sendSchedule() ? 'บันทึกแล้ว และส่งตารางไปยังบอร์ดแล้ว' : 'บันทึกตารางเวลาแล้ว จะส่งไปยังบอร์ดเมื่อเชื่อมต่อฮาร์ดแวร์');
+});
+schLoad(); schFillForm(); schPaint(); setInterval(schPaint, 30000);
+
 (async function init(){
   try{
     const {data} = await api('/api/session');
