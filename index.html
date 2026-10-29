@@ -103,6 +103,15 @@ code{background:#fff;color:#C93A0E}
 .times input{display:block;width:100%;margin-top:4px;padding:9px 10px;font:inherit;font-size:.95rem;font-weight:400;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px}
 #schSave{margin-top:6px}
 #schMsg.bad{color:var(--bad)}
+.schd{margin:-4px 0 14px;padding:10px 12px;background:var(--bg);border-radius:10px}
+.schh{display:flex;align-items:center;gap:12px}
+.schh .t{flex:1}
+.sb{font-size:.88rem;font-weight:600}
+.schh small{display:block;color:var(--mute);font-size:.8rem}
+.sw.mini{width:46px;height:26px;border-radius:13px}
+.sw.mini::after{top:4px;left:4px;width:18px;height:18px}
+.sw.mini[aria-checked="true"]::after{transform:translateX(20px)}
+.schd .times input{background:var(--surface)}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;display=swap" rel="stylesheet">
 </head>
@@ -166,33 +175,29 @@ code{background:#fff;color:#C93A0E}
         <div class="t"><b>หลอดไฟปลูกพืช</b><small id="lightS">ปิดอยู่</small></div>
         <button class="sw light" role="switch" aria-checked="false" aria-label="หลอดไฟปลูกพืช" data-dev="light"></button>
       </div>
-      <div class="row">
-        <div class="t"><b>ปั๊มน้ำหมุนเวียน</b><small id="pumpS">ปิดอยู่</small></div>
-        <button class="sw" role="switch" aria-checked="false" aria-label="ปั๊มน้ำหมุนเวียน" data-dev="pump"></button>
-      </div>
-      <div class="row">
-        <div class="t"><b>วาล์วเติมน้ำเข้าถัง</b><small id="valveS">ปิดอยู่</small></div>
-        <button class="sw" role="switch" aria-checked="false" aria-label="วาล์วเติมน้ำ" data-dev="valve"></button>
-      </div>
-    </section>
-
-    <section class="panel" aria-labelledby="sh">
-      <h2 id="sh">ตั้งเวลาอัตโนมัติ</h2>
-      <div class="sch">
-        <div class="row"><div class="t"><b>หลอดไฟปลูกพืช</b><small id="schLightS">ปิดตั้งเวลา</small></div>
-          <button class="sw light" role="switch" aria-checked="false" aria-label="เปิดตั้งเวลาหลอดไฟ" id="schLightOn" type="button"></button></div>
-        <div class="times">
+      <div class="schd">
+        <div class="schh"><div class="t"><span class="sb">ตั้งเวลาอัตโนมัติ</span><small id="schLightS">ปิดตั้งเวลา</small></div>
+          <button class="sw light mini" role="switch" aria-checked="false" aria-label="เปิดตั้งเวลาหลอดไฟ" id="schLightOn" type="button"></button></div>
+        <div class="times" id="schLightT" hidden>
           <label>เปิดไฟเวลา<input type="time" id="lFrom" value="06:00"></label>
           <label>ปิดไฟเวลา<input type="time" id="lTo" value="18:00"></label>
         </div>
       </div>
-      <div class="sch">
-        <div class="row"><div class="t"><b>ปั๊มน้ำหมุนเวียน</b><small id="schPumpS">ปิดตั้งเวลา</small></div>
-          <button class="sw" role="switch" aria-checked="false" aria-label="เปิดตั้งเวลาปั๊มน้ำ" id="schPumpOn" type="button"></button></div>
-        <div class="times">
-          <label>เปิดทำงาน (นาที)<input type="number" id="pRun" min="1" max="600" inputmode="numeric" value="15"></label>
+      <div class="row">
+        <div class="t"><b>ปั๊มน้ำหมุนเวียน</b><small id="pumpS">ปิดอยู่</small></div>
+        <button class="sw" role="switch" aria-checked="false" aria-label="ปั๊มน้ำหมุนเวียน" data-dev="pump"></button>
+      </div>
+      <div class="schd">
+        <div class="schh"><div class="t"><span class="sb">ตั้งเวลาอัตโนมัติ</span><small id="schPumpS">ปิดตั้งเวลา</small></div>
+          <button class="sw mini" role="switch" aria-checked="false" aria-label="เปิดตั้งเวลาปั๊มน้ำ" id="schPumpOn" type="button"></button></div>
+        <div class="times" id="schPumpT" hidden>
+          <label>ทำงาน (นาที)<input type="number" id="pRun" min="1" max="600" inputmode="numeric" value="15"></label>
           <label>พัก (นาที)<input type="number" id="pRest" min="1" max="600" inputmode="numeric" value="45"></label>
         </div>
+      </div>
+      <div class="row">
+        <div class="t"><b>วาล์วเติมน้ำเข้าถัง</b><small id="valveS">ปิดอยู่</small></div>
+        <button class="sw" role="switch" aria-checked="false" aria-label="วาล์วเติมน้ำ" data-dev="valve"></button>
       </div>
       <button class="btn" id="schSave" type="button">บันทึกตารางเวลา</button>
       <p class="hint" id="schMsg" role="status"></p>
@@ -361,6 +366,11 @@ function schFillForm(){
   $('schPumpOn').setAttribute('aria-checked', sch.pump.on);
   $('lFrom').value = sch.light.from; $('lTo').value = sch.light.to;
   $('pRun').value = sch.pump.run; $('pRest').value = sch.pump.rest;
+  schShow();
+}
+function schShow(){
+  $('schLightT').hidden = $('schLightOn').getAttribute('aria-checked') !== 'true';
+  $('schPumpT').hidden = $('schPumpOn').getAttribute('aria-checked') !== 'true';
 }
 function sendSchedule(){
   if(!state.connected) return false;
@@ -371,14 +381,18 @@ function syncSchedule(){ sendSchedule(); }
 function schMsg(t, bad){ const m = $('schMsg'); m.textContent = t; m.className = 'hint' + (bad ? ' bad' : ''); }
 ['schLightOn','schPumpOn'].forEach(id => $(id).addEventListener('click', e => {
   const b = e.currentTarget; b.setAttribute('aria-checked', b.getAttribute('aria-checked') !== 'true');
+  schShow();
 }));
 $('schSave').addEventListener('click', () => {
-  const from = $('lFrom').value, to = $('lTo').value;
-  const run = parseInt($('pRun').value, 10), rest = parseInt($('pRest').value, 10);
-  if(!from || !to || from === to) return schMsg('เวลาเปิดและปิดไฟต้องไม่ว่าง และต้องไม่ตรงกัน', true);
-  if(!(run >= 1 && run <= 600 && rest >= 1 && rest <= 600)) return schMsg('เวลาทำงานและเวลาพักของปั๊มต้องอยู่ระหว่าง 1–600 นาที', true);
-  sch.light = {on: $('schLightOn').getAttribute('aria-checked') === 'true', from, to};
-  sch.pump = {on: $('schPumpOn').getAttribute('aria-checked') === 'true', run, rest};
+  const lOn = $('schLightOn').getAttribute('aria-checked') === 'true', pOn = $('schPumpOn').getAttribute('aria-checked') === 'true';
+  let from = $('lFrom').value, to = $('lTo').value;
+  let run = parseInt($('pRun').value, 10), rest = parseInt($('pRest').value, 10);
+  if(lOn && (!from || !to || from === to)) return schMsg('เวลาเปิดและปิดไฟต้องไม่ว่าง และต้องไม่ตรงกัน', true);
+  if(pOn && !(run >= 1 && run <= 600 && rest >= 1 && rest <= 600)) return schMsg('เวลาทำงานและเวลาพักของปั๊มต้องอยู่ระหว่าง 1–600 นาที', true);
+  if(!from || !to || from === to){ from = sch.light.from; to = sch.light.to; }
+  if(!(run >= 1 && run <= 600 && rest >= 1 && rest <= 600)){ run = sch.pump.run; rest = sch.pump.rest; }
+  sch.light = {on: lOn, from, to};
+  sch.pump = {on: pOn, run, rest};
   try{ localStorage.setItem(SCH_KEY, JSON.stringify(sch)); }catch(_){}
   schPaint();
   schMsg(sendSchedule() ? 'บันทึกแล้ว และส่งตารางไปยังบอร์ดแล้ว' : 'บันทึกตารางเวลาแล้ว จะส่งไปยังบอร์ดเมื่อเชื่อมต่อฮาร์ดแวร์');
