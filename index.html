@@ -112,6 +112,16 @@ code{background:#fff;color:#C93A0E}
 .sw.mini::after{top:4px;left:4px;width:18px;height:18px}
 .sw.mini[aria-checked="true"]::after{transform:translateX(20px)}
 .schd .times input{background:var(--surface)}
+.hh-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.hh-top h2{margin:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{font:inherit;font-size:.82rem;padding:5px 14px;border:0;background:transparent;color:var(--mute);cursor:pointer;transition:background .15s}
+.seg button[aria-pressed="true"]{background:var(--orange-d);color:#fff}
+.seg button:focus-visible{outline:3px solid var(--orange);outline-offset:-2px}
+.hist+.hist{margin-top:18px}
+.hist b{font-size:.85rem;color:var(--mute)}
+.hchart{display:block;width:100%;height:140px;margin-top:6px;background:var(--bg);border-radius:10px}
+.hist .hint{margin-top:6px;font-size:.82rem;color:var(--mute)}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;display=swap" rel="stylesheet">
 </head>
@@ -164,6 +174,28 @@ code{background:#fff;color:#C93A0E}
       <div class="ticks"><span>0</span><span>0.5</span><span>1.0</span><span>1.5</span><span>2.0</span><span>2.5</span><span>3.0</span></div>
       <p class="hint" id="ecHint"></p>
       <svg class="spark" id="ecSpark" viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true"></svg>
+    </section>
+
+    <section class="panel" aria-labelledby="hh">
+      <div class="hh-top">
+        <h2 id="hh">ประวัติย้อนหลัง</h2>
+        <div class="seg" role="group" aria-label="ช่วงเวลา">
+          <button type="button" data-r="1h"  aria-pressed="false">1 ชม.</button>
+          <button type="button" data-r="24h" aria-pressed="true">24 ชม.</button>
+          <button type="button" data-r="7d"  aria-pressed="false">7 วัน</button>
+        </div>
+      </div>
+      <div class="hist">
+        <b>pH</b>
+        <svg class="hchart" id="phHist" viewBox="0 0 600 140" preserveAspectRatio="none" role="img" aria-label="กราฟ pH ย้อนหลัง"></svg>
+        <p class="hint" id="phHistNote"></p>
+      </div>
+      <div class="hist">
+        <b>EC (mS/cm)</b>
+        <svg class="hchart" id="ecHist" viewBox="0 0 600 140" preserveAspectRatio="none" role="img" aria-label="กราฟ EC ย้อนหลัง"></svg>
+        <p class="hint" id="ecHistNote"></p>
+      </div>
+      <p class="hint" id="histMsg" style="margin-top:10px"></p>
     </section>
   </div>
 
@@ -311,6 +343,59 @@ document.querySelectorAll('.sw[data-dev]').forEach(b => b.addEventListener('clic
   const d = b.dataset.dev; sendCommand(d, !state[d]);
 }));
 
+// ---------- ประวัติย้อนหลังจาก InfluxDB ----------
+const SPAN = {'1h':36e5,'24h':864e5,'7d':6048e5};
+let histRange = '24h';
+
+function drawChart(k, pts){
+  const r = RANGE[k], W = 600, H = 140, P = 10, span = SPAN[histRange], t0 = Date.now() - span;
+  const X = t => Math.max(0, Math.min(W, (t - t0) / span * W)).toFixed(1);
+  const Y = v => (H - P - (Math.min(r.max, Math.max(r.min, v)) - r.min) / (r.max - r.min) * (H - 2*P)).toFixed(1);
+  // แถบช่วงเหมาะสม
+  let svg = '<rect x="0" y="' + Y(r.hi) + '" width="' + W + '" height="' + (Y(r.lo)-Y(r.hi)).toFixed(1) + '" fill="var(--green)" opacity=".18"/>';
+  // เส้นกราฟ
+  if(pts.length > 1){
+    svg += '<polyline fill="none" stroke="var(--orange)" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="'
+      + pts.map(p => X(Date.parse(p[0])) + ',' + Y(p[1])).join(' ') + '"/>';
+  } else if(pts.length === 1){
+    svg += '<circle cx="' + X(Date.parse(pts[0][0])) + '" cy="' + Y(pts[0][1]) + '" r="4" fill="var(--orange)"/>';
+  }
+  $(k+'Hist').innerHTML = svg;
+  const d = k === 'ph' ? 1 : 2;
+  $(k+'HistNote').textContent = pts.length
+    ? 'ล่าสุด ' + pts[pts.length-1][1].toFixed(d)
+      + ' · ต่ำสุด ' + Math.min(...pts.map(p=>p[1])).toFixed(d)
+      + ' · สูงสุด ' + Math.max(...pts.map(p=>p[1])).toFixed(d)
+    : 'ยังไม่มีข้อมูลในช่วงนี้';
+}
+
+async function loadHistory(){
+  const want = histRange;
+  $('histMsg').textContent = 'กำลังโหลด...';
+  try{
+    const {status, data} = await api('/api/history?range=' + want);
+    if(want !== histRange) return;
+    if(status === 401){ showApp(false); return; }
+    if(!data.ok){
+      $('histMsg').textContent = status === 500
+        ? 'ยังไม่ได้ตั้งค่า InfluxDB บนเซิร์ฟเวอร์'
+        : 'ดึงข้อมูลย้อนหลังไม่สำเร็จ จะลองใหม่อัตโนมัติ';
+      return;
+    }
+    $('histMsg').textContent = '';
+    drawChart('ph', data.points.ph);
+    drawChart('ec', data.points.ec);
+  } catch(_){
+    $('histMsg').textContent = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้';
+  }
+}
+
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+  histRange = b.dataset.r;
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x===b));
+  loadHistory();
+}));
+
 // ---------- เข้าสู่ระบบ ----------
 async function api(path, opts){
   const r = await fetch(path, Object.assign({credentials:'same-origin'}, opts));
@@ -321,7 +406,7 @@ let started = false;
 function showApp(on){ $('loginView').hidden = on; $('app').hidden = !on; }
 function startApp(){
   showApp(true);
-  if(!started){ started = true; render(); connectHardware(); }
+  if(!started){ started = true; render(); connectHardware(); loadHistory(); setInterval(()=>{ if(!document.hidden) loadHistory(); }, 60000); }
 }
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
