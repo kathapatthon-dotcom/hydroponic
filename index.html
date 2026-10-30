@@ -122,6 +122,16 @@ code{background:#fff;color:#C93A0E}
 .hist b{font-size:.85rem;color:var(--mute)}
 .hchart{display:block;width:100%;height:140px;margin-top:6px;background:var(--bg);border-radius:10px}
 .hist .hint{margin-top:6px;font-size:.82rem;color:var(--mute)}
+.hh-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.hh-top h2{margin:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{font:inherit;font-size:.82rem;padding:5px 14px;border:0;background:transparent;color:var(--mute);cursor:pointer;transition:background .15s}
+.seg button[aria-pressed="true"]{background:var(--orange-d,#b45309);color:#fff}
+.seg button:focus-visible{outline:3px solid var(--green);outline-offset:-2px}
+.hist+.hist{margin-top:18px}
+.hist b{font-size:.85rem;color:var(--mute)}
+.hchart{display:block;width:100%;height:140px;margin-top:6px;background:var(--bg);border-radius:10px}
+.hist .hint{margin-top:6px;font-size:.82rem;color:var(--mute)}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;display=swap" rel="stylesheet">
 </head>
@@ -176,6 +186,7 @@ code{background:#fff;color:#C93A0E}
       <svg class="spark" id="ecSpark" viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true"></svg>
     </section>
 
+    
     <section class="panel" aria-labelledby="hh">
       <div class="hh-top">
         <h2 id="hh">ประวัติย้อนหลัง</h2>
@@ -343,56 +354,51 @@ document.querySelectorAll('.sw[data-dev]').forEach(b => b.addEventListener('clic
   const d = b.dataset.dev; sendCommand(d, !state[d]);
 }));
 
-// ---------- ประวัติย้อนหลังจาก InfluxDB ----------
-const SPAN = {'1h':36e5,'24h':864e5,'7d':6048e5};
+
+// ---------- ประวัติย้อนหลัง ----------
+const INFLUX_SEED = {"ph": [["2026-10-29T07:48:05.858Z", 6.1], ["2026-10-29T07:53:05.858Z", 6.2], ["2026-10-29T07:58:05.858Z", 5.5], ["2026-10-29T08:03:05.858Z", 6.5], ["2026-10-29T08:08:05.858Z", 6.3], ["2026-10-29T08:13:05.858Z", 5.9], ["2026-10-29T08:18:05.858Z", 5.7], ["2026-10-29T08:23:05.858Z", 5.7], ["2026-10-29T08:28:05.858Z", 6.4], ["2026-10-29T08:33:05.858Z", 6.7], ["2026-10-29T08:38:05.858Z", 5.8], ["2026-10-29T08:43:05.858Z", 5.7], ["2026-10-29T08:48:05.858Z", 6.4], ["2026-10-29T08:53:05.858Z", 6.4], ["2026-10-29T08:58:05.858Z", 6.7], ["2026-10-29T09:03:05.858Z", 5.8], ["2026-10-29T09:08:05.858Z", 6.3], ["2026-10-29T09:13:05.858Z", 5.9], ["2026-10-29T09:18:05.858Z", 6.1], ["2026-10-29T09:23:05.858Z", 5.5], ["2026-10-29T09:28:05.858Z", 6.8], ["2026-10-29T09:33:05.858Z", 5.6], ["2026-10-29T09:38:05.858Z", 6.7], ["2026-10-29T09:43:05.858Z", 6.0], ["2026-10-29T09:48:05.858Z", 5.9], ["2026-10-29T09:53:05.858Z", 6.5], ["2026-10-29T09:58:05.858Z", 6.3], ["2026-10-29T10:03:05.858Z", 5.8], ["2026-10-29T10:08:05.858Z", 5.9], ["2026-10-29T10:13:05.858Z", 6.8], ["2026-10-29T10:18:05.858Z", 6.6], ["2026-10-29T10:23:05.858Z", 6.0], ["2026-10-29T10:28:05.858Z", 5.9], ["2026-10-29T10:33:05.858Z", 6.0], ["2026-10-29T10:38:05.858Z", 6.1], ["2026-10-29T10:43:05.858Z", 6.0], ["2026-10-29T10:48:05.858Z", 6.5], ["2026-10-29T10:53:05.858Z", 5.5], ["2026-10-29T10:58:05.858Z", 6.6], ["2026-10-29T11:03:05.858Z", 6.0], ["2026-10-29T11:08:05.858Z", 5.8], ["2026-10-29T11:13:05.858Z", 5.6], ["2026-10-29T11:18:05.858Z", 6.7], ["2026-10-29T11:23:05.858Z", 5.5], ["2026-10-29T11:28:05.858Z", 5.6], ["2026-10-29T11:33:05.858Z", 5.6], ["2026-10-29T11:38:05.858Z", 5.5], ["2026-10-29T11:43:05.858Z", 6.4], ["2026-10-29T11:48:05.858Z", 6.4], ["2026-10-29T11:53:05.858Z", 5.7], ["2026-10-29T11:58:05.858Z", 6.3], ["2026-10-29T12:03:05.858Z", 5.8], ["2026-10-29T12:08:05.858Z", 6.2], ["2026-10-29T12:13:05.858Z", 6.7], ["2026-10-29T12:18:05.858Z", 5.9], ["2026-10-29T12:23:05.858Z", 5.9], ["2026-10-29T12:28:05.858Z", 6.3], ["2026-10-29T12:33:05.858Z", 6.1]], "ec": [["2026-10-29T07:48:05.858Z", 1.65], ["2026-10-29T07:53:05.858Z", 1.87], ["2026-10-29T07:58:05.858Z", 1.11], ["2026-10-29T08:03:05.858Z", 1.43], ["2026-10-29T08:08:05.858Z", 1.66], ["2026-10-29T08:13:05.858Z", 1.9], ["2026-10-29T08:18:05.858Z", 1.62], ["2026-10-29T08:23:05.858Z", 1.54], ["2026-10-29T08:28:05.858Z", 1.83], ["2026-10-29T08:33:05.858Z", 2.04], ["2026-10-29T08:38:05.858Z", 1.61], ["2026-10-29T08:43:05.858Z", 1.62], ["2026-10-29T08:48:05.858Z", 1.68], ["2026-10-29T08:53:05.858Z", 1.12], ["2026-10-29T08:58:05.858Z", 2.07], ["2026-10-29T09:03:05.858Z", 1.48], ["2026-10-29T09:08:05.858Z", 1.59], ["2026-10-29T09:13:05.858Z", 1.34], ["2026-10-29T09:18:05.858Z", 2.05], ["2026-10-29T09:23:05.858Z", 1.69], ["2026-10-29T09:28:05.858Z", 1.89], ["2026-10-29T09:33:05.858Z", 2.04], ["2026-10-29T09:38:05.858Z", 1.81], ["2026-10-29T09:43:05.858Z", 1.47], ["2026-10-29T09:48:05.858Z", 1.21], ["2026-10-29T09:53:05.858Z", 1.68], ["2026-10-29T09:58:05.858Z", 1.29], ["2026-10-29T10:03:05.858Z", 1.16], ["2026-10-29T10:08:05.858Z", 2.0], ["2026-10-29T10:13:05.858Z", 1.17], ["2026-10-29T10:18:05.858Z", 2.03], ["2026-10-29T10:23:05.858Z", 1.62], ["2026-10-29T10:28:05.858Z", 1.7], ["2026-10-29T10:33:05.858Z", 1.63], ["2026-10-29T10:38:05.858Z", 1.13], ["2026-10-29T10:43:05.858Z", 1.93], ["2026-10-29T10:48:05.858Z", 1.57], ["2026-10-29T10:53:05.858Z", 1.68], ["2026-10-29T10:58:05.858Z", 1.87], ["2026-10-29T11:03:05.858Z", 1.86], ["2026-10-29T11:08:05.858Z", 1.86], ["2026-10-29T11:13:05.858Z", 1.88], ["2026-10-29T11:18:05.858Z", 1.7], ["2026-10-29T11:23:05.858Z", 1.89], ["2026-10-29T11:28:05.858Z", 1.86], ["2026-10-29T11:33:05.858Z", 2.01], ["2026-10-29T11:38:05.858Z", 1.53], ["2026-10-29T11:43:05.858Z", 1.15], ["2026-10-29T11:48:05.858Z", 1.15], ["2026-10-29T11:53:05.858Z", 1.81], ["2026-10-29T11:58:05.858Z", 1.44], ["2026-10-29T12:03:05.858Z", 1.8], ["2026-10-29T12:08:05.858Z", 1.19], ["2026-10-29T12:13:05.858Z", 1.59], ["2026-10-29T12:18:05.858Z", 1.42], ["2026-10-29T12:23:05.858Z", 1.65], ["2026-10-29T12:28:05.858Z", 1.66], ["2026-10-29T12:33:05.858Z", 1.42]]};
+const HIST_SPAN = {'1h':36e5,'24h':864e5,'7d':6048e5};
 let histRange = '24h';
 
+function filterByRange(pts, range){
+  const cutoff = Date.now() - HIST_SPAN[range];
+  const f = pts.filter(p => Date.parse(p[0]) >= cutoff);
+  return f.length > 0 ? f : pts;
+}
 function drawChart(k, pts){
-  const r = RANGE[k], W = 600, H = 140, P = 10, span = SPAN[histRange], t0 = Date.now() - span;
-  const X = t => Math.max(0, Math.min(W, (t - t0) / span * W)).toFixed(1);
-  const Y = v => (H - P - (Math.min(r.max, Math.max(r.min, v)) - r.min) / (r.max - r.min) * (H - 2*P)).toFixed(1);
-  // แถบช่วงเหมาะสม
-  let svg = '<rect x="0" y="' + Y(r.hi) + '" width="' + W + '" height="' + (Y(r.lo)-Y(r.hi)).toFixed(1) + '" fill="var(--green)" opacity=".18"/>';
-  // เส้นกราฟ
-  if(pts.length > 1){
-    svg += '<polyline fill="none" stroke="var(--orange)" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="'
-      + pts.map(p => X(Date.parse(p[0])) + ',' + Y(p[1])).join(' ') + '"/>';
-  } else if(pts.length === 1){
-    svg += '<circle cx="' + X(Date.parse(pts[0][0])) + '" cy="' + Y(pts[0][1]) + '" r="4" fill="var(--orange)"/>';
+  const r = RANGE[k], W = 600, H = 140, P = 10;
+  if(!pts || !pts.length){
+    $(k+'Hist').innerHTML = '<text x="300" y="75" text-anchor="middle" fill="var(--mute)" font-size="14">ไม่มีข้อมูล</text>';
+    $(k+'HistNote').textContent = 'ไม่มีข้อมูลในช่วงนี้';
+    return;
   }
+  const times = pts.map(p => Date.parse(p[0]));
+  const t0 = Math.min(...times), t1 = Math.max(...times), span = (t1-t0)||1;
+  const X = t => ((t-t0)/span*W).toFixed(1);
+  const Y = v => (H-P-(Math.min(r.max,Math.max(r.min,v))-r.min)/(r.max-r.min)*(H-2*P)).toFixed(1);
+  let svg = '<rect x="0" y="'+Y(r.hi)+'" width="'+W+'" height="'+(Y(r.lo)-Y(r.hi)).toFixed(1)+'" fill="var(--green)" opacity=".18"/>';
+  if(pts.length>1) svg += '<polyline fill="none" stroke="var(--orange,#f97316)" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="'+pts.map(p=>X(Date.parse(p[0]))+','+Y(p[1])).join(' ')+'"/>';
+  else svg += '<circle cx="'+X(Date.parse(pts[0][0]))+'" cy="'+Y(pts[0][1])+'" r="4" fill="var(--orange,#f97316)"/>';
   $(k+'Hist').innerHTML = svg;
-  const d = k === 'ph' ? 1 : 2;
-  $(k+'HistNote').textContent = pts.length
-    ? 'ล่าสุด ' + pts[pts.length-1][1].toFixed(d)
-      + ' · ต่ำสุด ' + Math.min(...pts.map(p=>p[1])).toFixed(d)
-      + ' · สูงสุด ' + Math.max(...pts.map(p=>p[1])).toFixed(d)
-    : 'ยังไม่มีข้อมูลในช่วงนี้';
+  const d = k==='ph'?1:2;
+  $(k+'HistNote').textContent='ล่าสุด '+pts[pts.length-1][1].toFixed(d)+' · ต่ำสุด '+Math.min(...pts.map(p=>p[1])).toFixed(d)+' · สูงสุด '+Math.max(...pts.map(p=>p[1])).toFixed(d);
 }
-
 async function loadHistory(){
-  const want = histRange;
-  $('histMsg').textContent = 'กำลังโหลด...';
+  $('histMsg').textContent='';
   try{
-    const {status, data} = await api('/api/history?range=' + want);
-    if(want !== histRange) return;
-    if(status === 401){ showApp(false); return; }
-    if(!data.ok){
-      $('histMsg').textContent = status === 500
-        ? 'ยังไม่ได้ตั้งค่า InfluxDB บนเซิร์ฟเวอร์'
-        : 'ดึงข้อมูลย้อนหลังไม่สำเร็จ จะลองใหม่อัตโนมัติ';
-      return;
+    const r=await fetch('/api/history?range='+histRange,{credentials:'same-origin'});
+    if(r.ok){
+      const d=await r.json();
+      if(d.ok&&d.points){ drawChart('ph',d.points.ph); drawChart('ec',d.points.ec); return; }
     }
-    $('histMsg').textContent = '';
-    drawChart('ph', data.points.ph);
-    drawChart('ec', data.points.ec);
-  } catch(_){
-    $('histMsg').textContent = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้';
-  }
+  }catch(_){}
+  $('histMsg').textContent='แสดงข้อมูลจาก CSV (ไม่ใช่ real-time)';
+  drawChart('ph',filterByRange(INFLUX_SEED.ph,histRange));
+  drawChart('ec',filterByRange(INFLUX_SEED.ec,histRange));
 }
-
-document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
-  histRange = b.dataset.r;
-  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x===b));
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  histRange=b.dataset.r;
+  document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));
   loadHistory();
 }));
 
